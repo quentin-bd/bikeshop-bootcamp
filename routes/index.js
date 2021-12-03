@@ -3,7 +3,6 @@ var express = require('express');
 var router = express.Router();
 
 
-
 var dataBike = [
   {
     name: 'BIKO45',
@@ -38,6 +37,10 @@ var dataBike = [
 
 ]
 
+var shippingFees = {
+  name: 'Shipping Fees',
+  price: 30,
+}
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
@@ -53,20 +56,7 @@ router.get('/shop', function (req, res, next) {
     req.session.dataCardBike = []
   }
   var dataCardBike = req.session.dataCardBike;
-// ****** je boucle pour trouver la position et je push si elle n'existe aps dans l'array ***** //
 
-  // var position = -1;
-  // for (i = 0; i < dataCardBike.length; i++){
-  //   if(dataCardBike[i].name == bikeModel) {
-  //     dataCardBike[i].quantity += 1; 
-  //     position = i;  
-  //   }
-  // }
-  // if(position == -1){
-  //   dataCardBike.push({name: bikeModel, url: bikePic, price: bikePrice, quantity: 1,});
-  // } 
-
- // **************************************************************************************** // 
 
  var position = dataCardBike.findIndex(bike => bike.name == bikeModel);
  if(position >= 0) {
@@ -74,25 +64,44 @@ router.get('/shop', function (req, res, next) {
  } else {
   dataCardBike.push({name: bikeModel, url: bikePic, price: bikePrice, quantity: 1,});
  }
-  
-  res.render('shop', { dataCardBike, emptyCard: 'Your card is empty' });
+
+
+ let allQuantities = dataCardBike.map(bike => bike.quantity);
+ console.log(allQuantities);
+ let totalQuantities = allQuantities.reduce((prev, curr) => Number(prev) + Number(curr));
+ console.log(totalQuantities);
+ shippingFees.price = totalQuantities * 30
+ console.log(shippingFees.price);
+  res.render('shop', { dataCardBike, emptyCard: 'Your card is empty', shippingFees });
 });
 
 router.get('/delete-shop', function(req, res, next) {
   let trashIndex = req.query.trashIndex;
   var dataCardBike = req.session.dataCardBike;
   dataCardBike.splice(trashIndex, 1);
-  res.render('shop', {dataCardBike, emptyCard: 'Your card is empty.'}) 
+ 
+  let allQuantities = dataCardBike.map(bike => bike.quantity);
+  let totalQuantities = allQuantities.reduce((prev, curr) => Number(prev) + Number(curr));
+  shippingFees.price = totalQuantities * 30
+  res.render('shop', {dataCardBike, emptyCard: 'Your card is empty.', shippingFees}) 
 })
 
 router.post('/update-shop', function(req, res, next) {
+  
   let quantity = req.body.quantity;
   let index = req.body.hIndex;
   var dataCardBike = req.session.dataCardBike;
   console.log('datacardbike.quantity est egal à ' + quantity);
   dataCardBike[index].quantity = quantity;
-  console.log(dataCardBike);
-  res.render('shop', {dataCardBike, quantity})
+
+  let allQuantities = dataCardBike.map(bike => bike.quantity);
+  console.log(allQuantities);
+  let totalQuantities = allQuantities.reduce((prev, curr) => Number(prev) + Number(curr));
+  console.log(totalQuantities);
+  shippingFees.price = totalQuantities * 30
+  console.log(shippingFees.price);
+  
+  res.render('shop', {dataCardBike, quantity, shippingFees,})
 })
 
 
@@ -101,7 +110,6 @@ router.post('/update-shop', function(req, res, next) {
 router.post('/create-checkout-session', async (req, res) => {
   var checkoutCard = [];
   var dataCardBike = req.session.dataCardBike;
-  
   
   dataCardBike.forEach(item => { checkoutCard.push(    
       {
@@ -115,6 +123,19 @@ router.post('/create-checkout-session', async (req, res) => {
         quantity: item.quantity,
       }
   )})
+
+  checkoutCard.push(
+    {
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: shippingFees.name,
+        },
+        unit_amount: shippingFees.price * 100,
+      },
+      quantity: 1,
+    }
+  )
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],

@@ -11,11 +11,8 @@
   <link href="https://fonts.googleapis.com/css?family=Darker+Grotesque&display=swap" rel="stylesheet">
   <title>BikeShop - Shop</title>
   <script src="https://kit.fontawesome.com/a41e9403cf.js" crossorigin="anonymous"></script>
-  
   <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
-
   <script src="https://js.stripe.com/v3/"></script>
-
 </head>
 
 <body>
@@ -100,9 +97,18 @@
         <td class="border-0 bg-white"></td>
         <td class="border-0 bg-white"></td>
         <td class="border-0 bg-white"></td>
+        <td class="border-0 bg-white"><i><%= shippingFees.name%></i></td>
+        <td class="border-0 bg-white"><%= shippingFees.price%>€</td>
+        <td class="border-0 bg-white"></td>
+      </tr>
+      <tr>
+        <th class="border-0 bg-white" scope="row"></th>
+        <td class="border-0 bg-white"></td>
+        <td class="border-0 bg-white"></td>
+        <td class="border-0 bg-white"></td>
         <td class="border-0 bg-white">Total Basket :</td>
         <td class="border-0 bg-white">
-          <%= totalCard %>€
+          <%= totalCard + shippingFees.price %>€
         </td>
         <td class="border-0 bg-white"></td>
       </tr>
@@ -121,9 +127,6 @@
     </tbody>
   </table>
   <% } %>
-
-
-
 
   <!-- scripts -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
